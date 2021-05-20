@@ -28,7 +28,7 @@ def cv_format(variant):
                   '\n\tSubmissionCount: {}\n'.format(*e)
     return string
 
-
+# Speficy variant for Clinvar search
 gene = "CFTR"
 
 # list of variants pulled directly from ClinVar
@@ -37,13 +37,13 @@ gene = "CFTR"
 variant_list_accession = ["NM_000492.3:c.79G>T", "NM_000492.3:c.125C>T", "NM_000492.3:c.1573del",
                           "NM_000492.3:c.1505T>A", "NM_000492.3:c.1408G>A"]
 
+# declare EntrezSearch object to facilitate Entrez ClinVar searches
 esearch = EntrezSearch(gene=gene)
 
 # use Esearch  functions to pull information on each variant in a list from clinvar
 # returns for each: [VariantionID, VariationName, [[InterpretedCondition, Interpretation, ReviewStatus,
 #                     DateLastEvaluated, RCVAccession, SubmissionCount]]]
 # summary = esearch.get_significance_summary_by_variant(variant_list_accession)
-time.sleep(1)
 summary = esearch.get_significance_summary_by_variant(variant_list_accession)
 
 # format results for printing

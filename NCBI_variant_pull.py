@@ -1,20 +1,52 @@
 from API_NCBI import EntrezSearch
+import time
+
+"""
+This script searches clinvar for the variants listed with the variable variant_list_accession.
+Uses the Entrez search class in the API_NCBI.py file.
+
+Coming Soon: Command Line execution
+"""
+
+
+def cv_format(variant):
+    """
+    Formats results for printing
+    :param variant:
+    :return:
+    """
+
+    string = 'VariationID: {}\nName: {}'.format(variant[0], variant[1])
+
+    # iterate through RCV results and format
+    for e in variant[2]:
+        string += '\n\tCondition: {}' \
+                  '\n\tInterpretaion: {}' \
+                  '\n\tReviewStatus: {}' \
+                  '\n\tDateLastEvaluated: {}' \
+                  '\n\tRCVAccession: {},' \
+                  '\n\tSubmissionCount: {}\n'.format(*e)
+    return string
+
 
 gene = "CFTR"
 
 # list of variants pulled directly from ClinVar
-# I noticed that the Accession version varies
-# Check to see if issue is caused by searches for same variant but different accession version
-
-variant_list = ["NM_000492.3:c.79G>T", "NM_000492.3:c.125C>T",
-                "NM_000492.4:c.1573del", "NM_000492.3:c.1505T>A",
-                "M_000492.4:c.1408G>A"]
+# I noticed that the Accession version varies from entry to entry. Verified that the 3rd version is present for
+# majority of variants
+variant_list_accession = ["NM_000492.3:c.79G>T", "NM_000492.3:c.125C>T", "NM_000492.3:c.1573del",
+                          "NM_000492.3:c.1505T>A", "NM_000492.3:c.1408G>A"]
 
 esearch = EntrezSearch(gene=gene)
 
-# iterate through variant list and create Entrez search terms
-# term format is <gene>[gene]AND<variant>[varname]
-for variant in variant_list:
-    term = "{}[gene]AND{}[varname]".format(gene, variant)
+# use Esearch  functions to pull information on each variant in a list from clinvar
+# returns for each: [VariantionID, VariationName, [[InterpretedCondition, Interpretation, ReviewStatus,
+#                     DateLastEvaluated, RCVAccession, SubmissionCount]]]
+# summary = esearch.get_significance_summary_by_variant(variant_list_accession)
+time.sleep(1)
+summary = esearch.get_significance_summary_by_variant(variant_list_accession)
 
-    webenv, query_key = esearch.search(term)
+# format results for printing
+for entry in summary:
+
+    print(cv_format(entry))

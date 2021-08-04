@@ -14,13 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 class EntrezSearch(object):
-    """
-    Entrez Search Class using Eutils url building rules
-    search = clinvar_base + esearch.fcgi?db=<database>$term=<query>
-    """
     def __init__(self, gene, start=None, stop=None, chr=None):
         """
-
+        Entrez Search Class using Eutils url building rules
+            search - builds and requests str: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=<database>&term=<query>&usehistory=y"
+            fetch - builds and requests str: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=<database>&retmode=<retmode>&rettype=<rettype>&<additional>&WebEnv=<webenv>&query_key=<querykey>&usehistory=y"
+            info - builds and requests str: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi"
+            get_snp_from_entrez
+            get_cv_from_entrez
+            get_significance_summary_by_variant
+            search_for_ids
         :param gene:
         """
         self.gene = gene
@@ -60,23 +63,25 @@ class EntrezSearch(object):
            :return: [VariantionID, VariationName, [[InterpretationCondition, Interpretation, ReviewStatus,
                     DateLastEvaluated, RCVAccession, Submissions]]]
            """
-        # format each variant
+
+        # Build the variant_term by formatting each variant and joining them by OR
+        # Build the overall search term by supplying the created variant_term and gene
         variants = ['"{}"[varname]'.format(variant) for variant in variants]
-        # join variants by OR
         variant_term= 'OR'.join(variants)
         term = '"{}"[gene]AND{}'.format(self.gene, variant_term)
 
-        # search for clinvar ID
+        # Using the created search term, search clinvar for the IDs associated with each variant in the variant_term
+        # Results are returned using Eutil history function which are accessible using the webenv and querykey
         webenv, querykey, ids = self.search_for_ids(term)
 
-        # fetch information from clinvar and read string into Etree object for parsing
-        info = self.fetch(webenv, querykey, db='clinvar', return_type='vcv', return_mode='json', additional='is_variationid')
+        # Fetch information from clinvar using the previously acquired history keys (webenv, querykey)
+        # Read string into Etree object for parsing
+        self.fetch(webenv, querykey, db='clinvar', return_type='vcv', return_mode='json', additional='is_variationid')
         tree_of_records = etree.fromstring(self.xml)
 
-        # build list of clinvar information for each variant
         records = []
+        # Parse returned XML and pull desired information on each variant
         for record in tree_of_records.iter(tag='VariationArchive'):
-            # print(records)
             variant_id = record.get('VariationID')
             variant_name = record.get('VariationName')
             variant_classification_record = record.findall('.//RCVList/RCVAccession')
@@ -134,7 +139,6 @@ class EntrezSearch(object):
 
         return webenv, query_key, ids
 
-
     def search(self, term, db="clinvar"):
         """
 
@@ -159,7 +163,6 @@ class EntrezSearch(object):
         query_key = tree.find('QueryKey').text
 
         return webenv, query_key
-
 
     def fetch(self, web_env, query_key, db, return_type, return_mode, additional):
         """
@@ -188,7 +191,6 @@ class EntrezSearch(object):
         logger.debug('Request received with code: %s', request.status_code)
         self.xml = request.content.decode('utf-8')
         return request.status_code
-
 
 
 if __name__ == '__main__':

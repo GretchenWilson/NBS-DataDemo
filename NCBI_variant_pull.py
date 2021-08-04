@@ -48,5 +48,4 @@ summary = esearch.get_significance_summary_by_variant(variant_list_accession)
 
 # format results for printing
 for entry in summary:
-
     print(cv_format(entry))

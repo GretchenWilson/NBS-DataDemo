@@ -22,7 +22,7 @@ class EntrezSearch(object):
             info - builds and requests str: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi"
             get_snp_from_entrez
             get_cv_from_entrez
-            get_significance_summary_by_variant
+            get_significance_summary_by_variant: for a list of variants, pull summary information for each RCV from Clinvar
             search_for_ids
         :param gene:
         """
